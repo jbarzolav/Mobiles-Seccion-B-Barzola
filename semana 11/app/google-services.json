@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "472830242023",
+    "project_id": "authfirebasebarzola",
+    "storage_bucket": "authfirebasebarzola.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:472830242023:android:e5d405a9f3410ecc6b0642",
+        "android_client_info": {
+          "package_name": "com.tecsup.authfirebaseappbarzola"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvTJFIgRBJ_tUbVMRwUWLSPhvkNGVuaGc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
