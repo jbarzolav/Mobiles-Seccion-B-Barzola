@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
@@ -57,5 +58,15 @@ fun MapaUbicacion(
         }
 
         // TODO Paso 4: agregar los marcadores de los lugares.
+        lugares.forEach { item ->
+            Marker(
+                state = rememberUpdatedMarkerState(
+                    position = LatLng(item.lugar.latitud, item.lugar.longitud)
+                ),
+                title = item.lugar.nombre,
+                snippet = item.lugar.categoria,
+                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+            )
+        }
     }
 }
