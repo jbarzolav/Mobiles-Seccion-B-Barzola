@@ -24,6 +24,7 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
     val primos by vm.primos.collectAsState()
     val carga by vm.carga.collectAsState()
     val simularError by vm.simularError.collectAsState()
+    val tiemposComparacion by vm.tiemposComparacion.collectAsState()
     var limite by rememberSaveable { mutableStateOf("500000") }
     var toques by rememberSaveable { mutableStateOf(0) }
 
@@ -195,6 +196,29 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
                                 Text(c.mensaje)
                                 Button(onClick = { vm.cargarALaVez() }) {
                                     Text("Reintentar")
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (tiemposComparacion.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text("Comparación de tiempos:", style = MaterialTheme.typography.titleSmall)
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            tiemposComparacion.forEach { item ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(item.modo)
+                                    Text("${item.milisegundos} ms")
                                 }
                             }
                         }

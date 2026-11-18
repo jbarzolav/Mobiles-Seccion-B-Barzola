@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+data class TiemposComparacion(val modo: String, val milisegundos: Long)
+
 class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
     // Tarea con progreso: pasos 1 a 4.
     private val _mensaje = MutableStateFlow("Listo")
@@ -98,6 +100,9 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
     private val _simularError = MutableStateFlow(false)
     val simularError: StateFlow<Boolean> = _simularError.asStateFlow()
 
+    private val _tiemposComparacion = MutableStateFlow<List<TiemposComparacion>>(emptyList())
+    val tiemposComparacion: StateFlow<List<TiemposComparacion>> = _tiemposComparacion.asStateFlow()
+
     fun cambiarSimularError(valor: Boolean) {
         _simularError.value = valor
     }
@@ -111,6 +116,7 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
                 val perfil = repo.cargarPerfil()
                 val pedidos = repo.cargarPedidos(_simularError.value)
                 val duracion = System.currentTimeMillis() - inicio
+                _tiemposComparacion.value = _tiemposComparacion.value + TiemposComparacion("Una por una", duracion)
                 _carga.value = CargaUi.Exito(
                     modo = "Una por una",
                     perfil = perfil,
@@ -137,6 +143,7 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
                     Pair(a.await(), b.await())
                 }
                 val duracion = System.currentTimeMillis() - inicio
+                _tiemposComparacion.value = _tiemposComparacion.value + TiemposComparacion("A la vez", duracion)
                 _carga.value = CargaUi.Exito(
                     modo = "A la vez",
                     perfil = perfil,
