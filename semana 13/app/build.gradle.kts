@@ -1,8 +1,15 @@
+
+import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
-
+val localProps = Properties().apply {
+    val archivo = rootProject.file("local.properties")
+    if (archivo.exists()) {
+        archivo.inputStream().use { load(it) }
+    }
+}
 android {
     namespace = "com.tecsup.barzola_campusgps"
     compileSdk {
@@ -17,6 +24,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["MAPS_API_KEY"] =
+            localProps.getProperty("MAPS_API_KEY", "")
     }
 
     buildTypes {
@@ -51,11 +60,12 @@ dependencies {
     // Permite utilizar await() con las tareas de Google
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
 
-    // Google Maps para Jetpack Compose
-    implementation("com.google.maps.android:maps-compose:8.4.0")
 
     // ViewModel para Jetpack Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+
+    // Google Maps para Jetpack Compose
+    implementation("com.google.maps.android:maps-compose:8.4.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
