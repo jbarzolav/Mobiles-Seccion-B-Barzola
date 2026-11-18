@@ -69,14 +69,20 @@ fun MapaUbicacion(
             )
         }
 
-        lugares.forEach { item ->
+        lugares.forEachIndexed { index, item ->
+            val color = if (index == 0 && item.metros != null) {
+                BitmapDescriptorFactory.HUE_GREEN
+            } else {
+                BitmapDescriptorFactory.HUE_AZURE
+            }
+
             Marker(
                 state = rememberUpdatedMarkerState(
                     position = LatLng(item.lugar.latitud, item.lugar.longitud)
                 ),
                 title = item.lugar.nombre,
                 snippet = item.lugar.categoria,
-                icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+                icon = BitmapDescriptorFactory.defaultMarker(color)
             )
         }
     }

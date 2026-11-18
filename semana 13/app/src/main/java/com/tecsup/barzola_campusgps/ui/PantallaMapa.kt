@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.tecsup.barzola_campusgps.model.UbicacionUi
+import com.tecsup.barzola_campusgps.util.formatearDistancia
 import com.tecsup.barzola_campusgps.viewmodel.MapaViewModel
 
 /** Pantalla inicial del proyecto base: muestra el estado de la búsqueda. */
@@ -36,6 +37,7 @@ fun PantallaMapa(vm: MapaViewModel, modifier: Modifier = Modifier) {
     val estado by vm.estado.collectAsState()
     val lugares by vm.lugares.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
+    val masCercano by vm.masCercano.collectAsState()
     val contexto = LocalContext.current
 
     val lanzador = rememberLauncherForActivityResult(
@@ -105,13 +107,26 @@ fun PantallaMapa(vm: MapaViewModel, modifier: Modifier = Modifier) {
                 Text("Obtener mi ubicación")
             }
 
+            Button(
+                onClick = { masCercano?.let { vm.seleccionar(it.id) } },
+                enabled = masCercano != null
+            ) {
+                Text("Ir al más cercano")
+            }
+
+            if (masCercano != null) {
+                val itemCercano = lugares.find { it.lugar.id == masCercano?.id }
+                val distanciaTexto = itemCercano?.metros?.let { formatearDistancia(it) } ?: ""
+                Text("Más cercano: ${masCercano?.nombre} ($distanciaTexto)")
+            }
+
             ListaLugares(
                 lugares = lugares,
                 seleccionado = seleccionado,
                 onSeleccionar = { id -> vm.seleccionar(id) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(220.dp)
+                    .height(180.dp)
             )
 
             when (val actual = estado) {

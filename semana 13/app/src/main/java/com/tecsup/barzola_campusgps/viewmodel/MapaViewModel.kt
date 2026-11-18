@@ -4,13 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tecsup.barzola_campusgps.data.LugaresRepository
 import com.tecsup.barzola_campusgps.data.UbicacionRepository
+import com.tecsup.barzola_campusgps.model.Lugar
 import com.tecsup.barzola_campusgps.model.LugarConDistancia
 import com.tecsup.barzola_campusgps.model.Posicion
 import com.tecsup.barzola_campusgps.model.UbicacionUi
 import com.tecsup.barzola_campusgps.util.distanciaMetros
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class MapaViewModel(
@@ -24,8 +28,8 @@ class MapaViewModel(
     val estado: StateFlow<UbicacionUi> = _estado.asStateFlow()
 
     private val _lugares = MutableStateFlow(
-        lugaresRepo.obtenerLugares().map {
-            LugarConDistancia(it, null)
+        lugaresRepo.obtenerLugares().map { lugar: Lugar ->
+            LugarConDistancia(lugar, null)
         }
     )
 
@@ -36,6 +40,12 @@ class MapaViewModel(
 
     val seleccionado: StateFlow<Int?> =
         _seleccionado.asStateFlow()
+
+    val masCercano: StateFlow<Lugar?> = flow {
+        lugares.collect { lista ->
+            emit(lista.firstOrNull { it.metros != null }?.lugar)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun buscar() {
         _estado.value = UbicacionUi.Buscando
@@ -55,7 +65,7 @@ class MapaViewModel(
     }
 
     private fun actualizarDistancias(pos: Posicion) {
-        val listaConDistancia = lugaresRepo.obtenerLugares().map { lugar ->
+        val listaConDistancia = lugaresRepo.obtenerLugares().map { lugar: Lugar ->
             val metros = distanciaMetros(pos, lugar)
             LugarConDistancia(lugar, metros)
         }.sortedBy { it.metros }
@@ -72,8 +82,6 @@ class MapaViewModel(
             "Sin permiso de ubicación no puedo mostrar dónde estás"
         )
     }
-
-    // TODO Paso 7: val masCercano: StateFlow<Lugar?>
 
     private fun mensajeDe(error: Throwable): String =
         when (error) {
