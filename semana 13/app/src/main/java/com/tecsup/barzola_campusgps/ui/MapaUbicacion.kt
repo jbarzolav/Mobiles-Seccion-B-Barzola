@@ -41,6 +41,18 @@ fun MapaUbicacion(
         }
     }
 
+    LaunchedEffect(seleccionado) {
+        seleccionado?.let { id ->
+            val lugarEncontrado = lugares.find { it.lugar.id == id }
+            lugarEncontrado?.let {
+                val posicion = LatLng(it.lugar.latitud, it.lugar.longitud)
+                camara.animate(
+                    CameraUpdateFactory.newLatLngZoom(posicion, 17f)
+                )
+            }
+        }
+    }
+
     GoogleMap(
         modifier = modifier,
         cameraPositionState = camara
@@ -57,7 +69,6 @@ fun MapaUbicacion(
             )
         }
 
-        // TODO Paso 4: agregar los marcadores de los lugares.
         lugares.forEach { item ->
             Marker(
                 state = rememberUpdatedMarkerState(

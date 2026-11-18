@@ -63,13 +63,15 @@ class MapaViewModel(
         _lugares.value = listaConDistancia
     }
 
+    fun seleccionar(id: Int?) {
+        _seleccionado.value = id
+    }
+
     fun permisoDenegado() {
         _estado.value = UbicacionUi.Error(
             "Sin permiso de ubicación no puedo mostrar dónde estás"
         )
     }
-
-    // TODO Paso 6: fun seleccionar(id: Int?)
 
     // TODO Paso 7: val masCercano: StateFlow<Lugar?>
 

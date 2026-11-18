@@ -1,4 +1,5 @@
 package com.tecsup.barzola_campusgps.ui
+
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -8,6 +9,8 @@ import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -102,6 +105,15 @@ fun PantallaMapa(vm: MapaViewModel, modifier: Modifier = Modifier) {
                 Text("Obtener mi ubicación")
             }
 
+            ListaLugares(
+                lugares = lugares,
+                seleccionado = seleccionado,
+                onSeleccionar = { id -> vm.seleccionar(id) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+            )
+
             when (val actual = estado) {
                 UbicacionUi.Inicial -> Text("Pulsa el botón para obtener tu ubicación")
                 UbicacionUi.Buscando -> {
@@ -109,16 +121,13 @@ fun PantallaMapa(vm: MapaViewModel, modifier: Modifier = Modifier) {
                     Text("Buscando ubicación…")
                 }
                 is UbicacionUi.Lista -> {
-                    Text("Latitud: ${actual.posicion.latitud}")
-                    Text("Longitud: ${actual.posicion.longitud}")
+                    // Estado de lista ya representado en el mapa y la lista de lugares
                 }
                 is UbicacionUi.Error -> Text(
                     text = actual.mensaje,
                     color = MaterialTheme.colorScheme.error
                 )
             }
-
-
         }
     }
 }
