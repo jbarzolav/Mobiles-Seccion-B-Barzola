@@ -115,8 +115,10 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
                     pedidos = pedidos.size,
                     milisegundos = duracion
                 )
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                _carga.value = CargaUi.Error(e.localizedMessage ?: "Error desconocido")
+                _carga.value = CargaUi.Error("No se pudo cargar: ${e.localizedMessage}")
             }
         }
     }
@@ -139,8 +141,10 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
                     pedidos = pedidos.size,
                     milisegundos = duracion
                 )
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                _carga.value = CargaUi.Error(e.localizedMessage ?: "Error desconocido")
+                _carga.value = CargaUi.Error("No se pudo cargar: ${e.localizedMessage}")
             }
         }
     }

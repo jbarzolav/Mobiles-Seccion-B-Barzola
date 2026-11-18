@@ -189,8 +189,8 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                Text("Error: ${c.mensaje}")
-                                Button(onClick = { vm.cargarUnaPorUna() }) {
+                                Text(c.mensaje)
+                                Button(onClick = { vm.cargarALaVez() }) {
                                     Text("Reintentar")
                                 }
                             }
