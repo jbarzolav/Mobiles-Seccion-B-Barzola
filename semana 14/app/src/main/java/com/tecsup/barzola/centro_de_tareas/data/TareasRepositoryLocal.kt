@@ -1,0 +1,22 @@
+package com.tecsup.barzola.centro_de_tareas.data
+
+import java.io.IOException
+import kotlinx.coroutines.delay
+
+class TareasRepositoryLocal : TareasRepository {
+    override suspend fun cargarPerfil(): String {
+        delay(2000)
+        return "Ana Torres (ficticia)"
+    }
+
+    override suspend fun cargarPedidos(simularError: Boolean): List<String> {
+        delay(3000)
+        if (simularError) throw IOException("Sin conexión")
+        return listOf("Pedido 101", "Pedido 102", "Pedido 103")
+    }
+
+    override suspend fun contarPrimos(hasta: Int): Int {
+        // TODO Paso 5: withContext(Dispatchers.Default), ensureActive y esPrimo.
+        return 0
+    }
+}
