@@ -76,19 +76,45 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
+                val hastaInt = limite.toIntOrNull() ?: 0
+                val esValido = hastaInt >= 2
+                val calculandoPrimos = primos is PrimosUi.Calculando
+
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // TODO Paso 5: validar con toIntOrNull(), mínimo 2; vm.contar(hasta).
-                    Button(onClick = { /* TODO Paso 5 */ }, enabled = false) {
+                    Button(
+                        onClick = { vm.contar(hastaInt) },
+                        enabled = esValido && !calculandoPrimos
+                    ) {
                         Text("Contar")
                     }
-                    OutlinedButton(onClick = { /* TODO Paso 5 */ }, enabled = false) {
+                    OutlinedButton(
+                        onClick = { vm.cancelarPrimos() },
+                        enabled = calculandoPrimos
+                    ) {
                         Text("Cancelar")
                     }
                 }
-                if (primos is PrimosUi.Inicial) {
-                    Text("Ingresa un límite para contar los números primos")
+                when (val p = primos) {
+                    is PrimosUi.Inicial -> Text("Ingresa un límite para contar los números primos")
+                    is PrimosUi.Calculando -> {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        Text("Calculando primos...")
+                    }
+                    is PrimosUi.Listo -> {
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(modifier = Modifier.padding(12.dp)) {
+                                Text("Primos hasta $limite: ${p.cantidad}")
+                                Text("Tiempo: ${p.milisegundos} ms")
+                            }
+                        }
+                    }
+                    is PrimosUi.Cancelado -> Text("Cálculo cancelado")
                 }
-                // TODO Paso 5: dibujar Calculando, Listo y Cancelado según primos.
             }
 
             TarjetaTarea("Dos cargas") {

@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel
 import com.tecsup.barzola.centro_de_tareas.data.TareasRepository
 import com.tecsup.barzola.centro_de_tareas.model.CargaUi
 import com.tecsup.barzola.centro_de_tareas.model.PrimosUi
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,7 +62,30 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
     private val _primos = MutableStateFlow<PrimosUi>(PrimosUi.Inicial)
     val primos: StateFlow<PrimosUi> = _primos.asStateFlow()
 
-    // TODO Paso 5: fun contar(hasta: Int) y fun cancelarPrimos().
+    private var trabajoPrimos: Job? = null
+
+    fun contar(hasta: Int) {
+        if (_primos.value is PrimosUi.Calculando) return
+        trabajoPrimos = viewModelScope.launch {
+            _primos.value = PrimosUi.Calculando
+            val inicio = System.currentTimeMillis()
+            try {
+                val cantidad = repo.contarPrimos(hasta)
+                val duracion = System.currentTimeMillis() - inicio
+                _primos.value = PrimosUi.Listo(cantidad, duracion)
+            } catch (e: CancellationException) {
+                _primos.value = PrimosUi.Cancelado
+                throw e
+            } catch (e: Exception) {
+                _primos.value = PrimosUi.Cancelado
+            }
+        }
+    }
+
+    fun cancelarPrimos() {
+        trabajoPrimos?.cancel()
+        _primos.value = PrimosUi.Cancelado
+    }
 
     // Dos cargas: pasos 6 y 7.
     private val _carga = MutableStateFlow<CargaUi>(CargaUi.Inicial)

@@ -10,18 +10,4 @@ El mensaje **Trabajando...** no llegaba a dibujarse porque el mismo hilo encarga
 
 Si la espera fuera de diez segundos, Android podría mostrar un aviso ANR (*Application Not Responding*, «La aplicación no responde»), según las condiciones y los tiempos de espera del sistema.
 
-## Paso 2: tarea con corrutina
 
-Se reemplazó `tareaLargaMala()` por `tareaLarga()`, utilizando `viewModelScope.launch` y `withContext(Dispatchers.Default)`. La espera de cuatro segundos se realiza con `delay(4000)`, sin bloquear el hilo principal.
-
-Durante la tarea aparece **Trabajando...**, el contador **Tócame** sigue sumando y, al finalizar, se muestra **Terminó**. Se comprobó que la interfaz continúa respondiendo mientras se ejecuta la tarea.
-
-Los registros con la etiqueta **HILO** permiten identificar el cambio de contexto:
-
-| Momento | Hilo |
-| --- | --- |
-| Antes de `withContext` | `main` |
-| Dentro de `withContext` | `DefaultDispatcher-worker-…` |
-| Después de `withContext` | `main` |
-
-`Thread.sleep` ya no forma parte del código de la aplicación.
