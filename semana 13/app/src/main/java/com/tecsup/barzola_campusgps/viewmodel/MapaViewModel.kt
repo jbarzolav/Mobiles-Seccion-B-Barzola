@@ -7,6 +7,7 @@ import com.tecsup.barzola_campusgps.data.UbicacionRepository
 import com.tecsup.barzola_campusgps.model.Lugar
 import com.tecsup.barzola_campusgps.model.LugarConDistancia
 import com.tecsup.barzola_campusgps.model.Posicion
+import com.tecsup.barzola_campusgps.model.TipoError
 import com.tecsup.barzola_campusgps.model.UbicacionUi
 import com.tecsup.barzola_campusgps.util.distanciaMetros
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -48,6 +49,14 @@ class MapaViewModel(
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     fun buscar() {
+        if (!ubicacionRepo.playServicesDisponible()) {
+            _estado.value = UbicacionUi.Error(
+                mensaje = "Este dispositivo no tiene Google Play Services.",
+                tipo = TipoError.SIN_PLAY_SERVICES
+            )
+            return
+        }
+
         _estado.value = UbicacionUi.Buscando
 
         viewModelScope.launch {
@@ -57,8 +66,14 @@ class MapaViewModel(
                     actualizarDistancias(posicion)
                 }
                 .onFailure { error ->
+                    val tipo = if (error is IllegalStateException || error.message?.contains("GPS") == true) {
+                        TipoError.GPS_APAGADO
+                    } else {
+                        TipoError.OTRO
+                    }
                     _estado.value = UbicacionUi.Error(
-                        mensajeDe(error)
+                        mensaje = error.message ?: "No se pudo obtener la ubicación",
+                        tipo = tipo
                     )
                 }
         }
@@ -79,13 +94,8 @@ class MapaViewModel(
 
     fun permisoDenegado() {
         _estado.value = UbicacionUi.Error(
-            "Sin permiso de ubicación no puedo mostrar dónde estás"
+            mensaje = "Sin permiso de ubicación no puedo mostrar dónde estás",
+            tipo = TipoError.SIN_PERMISO
         )
     }
-
-    private fun mensajeDe(error: Throwable): String =
-        when (error) {
-            is SecurityException -> "Falta el permiso de ubicación"
-            else -> error.message ?: "No se pudo obtener la ubicación"
-        }
 }

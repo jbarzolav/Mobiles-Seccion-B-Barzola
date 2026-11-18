@@ -2,6 +2,8 @@
 
 import android.annotation.SuppressLint
 import android.content.Context
+import com.google.android.gms.common.ConnectionResult
+import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.tecsup.barzola_campusgps.model.Posicion
@@ -9,11 +11,18 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.tasks.await
 
 class UbicacionRepositoryGoogle(
-    context: Context
+    private val context: Context
 ) : UbicacionRepository {
 
     private val cliente = LocationServices
         .getFusedLocationProviderClient(context.applicationContext)
+
+    override fun playServicesDisponible(): Boolean {
+        val resultado = GoogleApiAvailability
+            .getInstance()
+            .isGooglePlayServicesAvailable(context)
+        return resultado == ConnectionResult.SUCCESS
+    }
 
     @SuppressLint("MissingPermission")
     override suspend fun obtenerPosicion(): Result<Posicion> {
@@ -38,7 +47,7 @@ class UbicacionRepositoryGoogle(
                 )
             } else {
                 Result.failure(
-                    IllegalStateException("No se pudo obtener la ubicación. Verifica que el GPS esté activado en tu dispositivo.")
+                    IllegalStateException("No se pudo obtener la ubicación. Activa el GPS e intenta de nuevo")
                 )
             }
         } catch (e: CancellationException) {

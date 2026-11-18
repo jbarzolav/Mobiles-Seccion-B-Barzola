@@ -138,9 +138,9 @@ fun PantallaMapa(vm: MapaViewModel, modifier: Modifier = Modifier) {
                 is UbicacionUi.Lista -> {
                     // Estado de lista ya representado en el mapa y la lista de lugares
                 }
-                is UbicacionUi.Error -> Text(
-                    text = actual.mensaje,
-                    color = MaterialTheme.colorScheme.error
+                is UbicacionUi.Error -> MensajeError(
+                    error = actual,
+                    onReintentar = { vm.buscar() }
                 )
             }
         }
