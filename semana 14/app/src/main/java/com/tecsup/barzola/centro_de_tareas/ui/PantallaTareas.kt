@@ -19,6 +19,7 @@ import com.tecsup.barzola.centro_de_tareas.viewmodel.TareasViewModel
 @Composable
 fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
     val mensaje by vm.mensaje.collectAsState()
+    val progreso by vm.progreso.collectAsState()
     val primos by vm.primos.collectAsState()
     val carga by vm.carga.collectAsState()
     var limite by rememberSaveable { mutableStateOf("500000") }
@@ -51,7 +52,7 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
             TarjetaTarea("Tarea con progreso") {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = { vm.tareaLarga() }) {
-                        Text("Tarea larga")
+                        Text("Iniciar")
                     }
                     // TODO Paso 4: conectar cancelar() y habilitar mientras corre.
                     OutlinedButton(onClick = { /* TODO Paso 4 */ }, enabled = false) {
@@ -59,7 +60,11 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
                     }
                 }
                 Text(mensaje)
-                // TODO Paso 3: LinearProgressIndicator y porcentaje desde vm.progreso.
+                LinearProgressIndicator(
+                    progress = { progreso },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text("${(progreso * 100).toInt()} %")
                 // TODO Paso 4: estados de los botones desde vm.corriendo.
             }
 
