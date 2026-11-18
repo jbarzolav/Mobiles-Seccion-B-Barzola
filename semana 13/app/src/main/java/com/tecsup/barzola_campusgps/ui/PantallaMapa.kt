@@ -6,15 +6,19 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -38,7 +42,10 @@ fun PantallaMapa(vm: MapaViewModel, modifier: Modifier = Modifier) {
     val lugares by vm.lugares.collectAsState()
     val seleccionado by vm.seleccionado.collectAsState()
     val masCercano by vm.masCercano.collectAsState()
+    val categoriaSeleccionada by vm.categoriaSeleccionada.collectAsState()
     val contexto = LocalContext.current
+
+    val categorias = listOf("Todos", "Estudio", "Comida", "Eventos", "Servicios")
 
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -91,7 +98,7 @@ fun PantallaMapa(vm: MapaViewModel, modifier: Modifier = Modifier) {
                 .padding(innerPadding)
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             MapaUbicacion(
                 estado = estado,
@@ -99,6 +106,22 @@ fun PantallaMapa(vm: MapaViewModel, modifier: Modifier = Modifier) {
                 seleccionado = seleccionado,
                 modifier = Modifier.weight(1f)
             )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                categorias.forEach { categoria ->
+                    val seleccionadoChip = (categoria == "Todos" && categoriaSeleccionada == null) || categoriaSeleccionada == categoria
+                    FilterChip(
+                        selected = seleccionadoChip,
+                        onClick = { vm.filtrarPorCategoria(categoria) },
+                        label = { Text(categoria) }
+                    )
+                }
+            }
 
             Button(
                 onClick = { alPulsar() },
@@ -126,7 +149,7 @@ fun PantallaMapa(vm: MapaViewModel, modifier: Modifier = Modifier) {
                 onSeleccionar = { id -> vm.seleccionar(id) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(180.dp)
+                    .height(160.dp)
             )
 
             when (val actual = estado) {
