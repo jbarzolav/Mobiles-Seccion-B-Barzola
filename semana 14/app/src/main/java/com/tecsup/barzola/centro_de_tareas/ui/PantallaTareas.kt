@@ -23,6 +23,7 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
     val corriendo by vm.corriendo.collectAsState()
     val primos by vm.primos.collectAsState()
     val carga by vm.carga.collectAsState()
+    val simularError by vm.simularError.collectAsState()
     var limite by rememberSaveable { mutableStateOf("500000") }
     var toques by rememberSaveable { mutableStateOf(0) }
 
@@ -118,11 +119,18 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
             }
 
             TarjetaTarea("Dos cargas") {
+                val cargando = carga is CargaUi.Cargando
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedButton(onClick = { /* TODO Paso 6 */ }, enabled = false) {
+                    OutlinedButton(
+                        onClick = { vm.cargarUnaPorUna() },
+                        enabled = !cargando
+                    ) {
                         Text("Una por una")
                     }
-                    Button(onClick = { /* TODO Paso 6 */ }, enabled = false) {
+                    Button(
+                        onClick = { vm.cargarALaVez() },
+                        enabled = !cargando
+                    ) {
                         Text("A la vez")
                     }
                 }
@@ -130,15 +138,65 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    // TODO Paso 7: observar vm.simularError y conectar su evento.
-                    Switch(checked = false, onCheckedChange = null, enabled = false)
+                    Switch(
+                        checked = simularError,
+                        onCheckedChange = { vm.cambiarSimularError(it) },
+                        enabled = !cargando
+                    )
                     Text("Simular error")
                 }
-                if (carga is CargaUi.Inicial) {
-                    Text("Compara los tiempos de ambas cargas")
+                when (val c = carga) {
+                    is CargaUi.Inicial -> Text("Compara los tiempos de ambas cargas")
+                    is CargaUi.Cargando -> {
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    is CargaUi.Exito -> {
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    "Modo: ${c.modo}",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Text("Perfil: ${c.perfil}")
+                                Text("Pedidos: ${c.pedidos}")
+                                Text("Tiempo: ${c.milisegundos} ms")
+                            }
+                        }
+                    }
+                    is CargaUi.Error -> {
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text("Error: ${c.mensaje}")
+                                Button(onClick = { vm.cargarUnaPorUna() }) {
+                                    Text("Reintentar")
+                                }
+                            }
+                        }
+                    }
                 }
-                // TODO Paso 6: Cargando y Exito (modo, perfil, pedidos y tiempo).
-                // TODO Paso 7: Error con botón Reintentar.
             }
         }
     }
