@@ -22,6 +22,7 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
     val primos by vm.primos.collectAsState()
     val carga by vm.carga.collectAsState()
     var limite by rememberSaveable { mutableStateOf("500000") }
+    var toques by rememberSaveable { mutableStateOf(0) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -43,16 +44,14 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // TODO Paso 1: contador de toques y evento para incrementarlo.
-            OutlinedButton(onClick = { /* TODO Paso 1 */ }, enabled = false) {
-                Text("Tócame: 0")
+            OutlinedButton(onClick = { toques++ }) {
+                Text("Tócame: $toques")
             }
 
             TarjetaTarea("Tarea con progreso") {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // TODO Paso 1: conectar tareaLargaMala().
                     // TODO Paso 2: cambiar a tareaLarga() y renombrar el botón.
-                    Button(onClick = { /* TODO Paso 1 */ }, enabled = false) {
+                    Button(onClick = { vm.tareaLargaMala() }) {
                         Text("Tarea larga (MAL)")
                     }
                     // TODO Paso 4: conectar cancelar() y habilitar mientras corre.
