@@ -18,10 +18,16 @@ class UbicacionRepositoryGoogle(
     @SuppressLint("MissingPermission")
     override suspend fun obtenerPosicion(): Result<Posicion> {
         return try {
-            val ubicacion = cliente.getCurrentLocation(
-                Priority.PRIORITY_HIGH_ACCURACY,
-                null
-            ).await()
+            // Intentar primero obtener la última ubicación conocida
+            var ubicacion = cliente.lastLocation.await()
+
+            // Si es null, solicitar ubicación actual con prioridad equilibrada
+            if (ubicacion == null) {
+                ubicacion = cliente.getCurrentLocation(
+                    Priority.PRIORITY_BALANCED_POWER_ACCURACY,
+                    null
+                ).await()
+            }
 
             if (ubicacion != null) {
                 Result.success(
@@ -32,7 +38,7 @@ class UbicacionRepositoryGoogle(
                 )
             } else {
                 Result.failure(
-                    IllegalStateException("No se pudo obtener la ubicación")
+                    IllegalStateException("No se pudo obtener la ubicación. Verifica que el GPS esté activado en tu dispositivo.")
                 )
             }
         } catch (e: CancellationException) {
