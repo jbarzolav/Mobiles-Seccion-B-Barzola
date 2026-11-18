@@ -1,5 +1,10 @@
 package com.tecsup.barzola_campusgps.ui
-
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,6 +31,40 @@ import com.tecsup.barzola_campusgps.viewmodel.MapaViewModel
 @Composable
 fun PantallaMapa(vm: MapaViewModel, modifier: Modifier = Modifier) {
     val estado by vm.estado.collectAsState()
+    val contexto = LocalContext.current
+
+    val lanzador = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { resultado ->
+        if (resultado.values.any { it }) {
+            vm.buscar()
+        } else {
+            vm.permisoDenegado()
+        }
+    }
+
+    fun alPulsar() {
+        val tieneFino = ContextCompat.checkSelfPermission(
+            contexto,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        val tieneAproximado = ContextCompat.checkSelfPermission(
+            contexto,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (tieneFino || tieneAproximado) {
+            vm.buscar()
+        } else {
+            lanzador.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -47,11 +86,9 @@ fun PantallaMapa(vm: MapaViewModel, modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // TODO Paso 2: comprobar FINE o COARSE antes de buscar.
-            // Si no hay permiso, solicitar ambos con RequestMultiplePermissions.
-            // Si acepta: vm.buscar(). Si niega: vm.permisoDenegado().
+
             Button(
-                onClick = { vm.buscar() },
+                onClick = { alPulsar() },
                 enabled = estado !is UbicacionUi.Buscando
             ) {
                 Text("Obtener mi ubicación")
@@ -73,9 +110,7 @@ fun PantallaMapa(vm: MapaViewModel, modifier: Modifier = Modifier) {
                 )
             }
 
-            // TODO Paso 3: incorporar MapaUbicacion con Modifier.weight(1f).
-            // TODO Paso 6: incorporar ListaLugares con altura fija.
-            // TODO Paso 7: incorporar el botón y el texto del lugar más cercano.
+
         }
     }
 }
