@@ -9,11 +9,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withTimeout
 import androidx.lifecycle.ViewModel
 import com.tecsup.barzola.centro_de_tareas.data.TareasRepository
 import com.tecsup.barzola.centro_de_tareas.model.CargaUi
 import com.tecsup.barzola.centro_de_tareas.model.PrimosUi
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -113,8 +115,11 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
             _carga.value = CargaUi.Cargando
             val inicio = System.currentTimeMillis()
             try {
-                val perfil = repo.cargarPerfil()
-                val pedidos = repo.cargarPedidos(_simularError.value)
+                val (perfil, pedidos) = withTimeout(2000) {
+                    val p = repo.cargarPerfil()
+                    val ped = repo.cargarPedidos(_simularError.value)
+                    Pair(p, ped)
+                }
                 val duracion = System.currentTimeMillis() - inicio
                 _tiemposComparacion.value = _tiemposComparacion.value + TiemposComparacion("Una por una", duracion)
                 _carga.value = CargaUi.Exito(
@@ -123,6 +128,8 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
                     pedidos = pedidos.size,
                     milisegundos = duracion
                 )
+            } catch (e: TimeoutCancellationException) {
+                _carga.value = CargaUi.Error("Tardó demasiado")
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -137,10 +144,12 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
             _carga.value = CargaUi.Cargando
             val inicio = System.currentTimeMillis()
             try {
-                val (perfil, pedidos) = coroutineScope {
-                    val a = async { repo.cargarPerfil() }
-                    val b = async { repo.cargarPedidos(_simularError.value) }
-                    Pair(a.await(), b.await())
+                val (perfil, pedidos) = withTimeout(2000) {
+                    coroutineScope {
+                        val a = async { repo.cargarPerfil() }
+                        val b = async { repo.cargarPedidos(_simularError.value) }
+                        Pair(a.await(), b.await())
+                    }
                 }
                 val duracion = System.currentTimeMillis() - inicio
                 _tiemposComparacion.value = _tiemposComparacion.value + TiemposComparacion("A la vez", duracion)
@@ -150,6 +159,8 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
                     pedidos = pedidos.size,
                     milisegundos = duracion
                 )
+            } catch (e: TimeoutCancellationException) {
+                _carga.value = CargaUi.Error("Tardó demasiado")
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
