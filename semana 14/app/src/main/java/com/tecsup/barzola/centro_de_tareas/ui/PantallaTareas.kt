@@ -98,8 +98,11 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
                 when (val p = primos) {
                     is PrimosUi.Inicial -> Text("Ingresa un límite para contar los números primos")
                     is PrimosUi.Calculando -> {
-                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                        Text("Calculando primos...")
+                        LinearProgressIndicator(
+                            progress = { p.progreso },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Text("Calculando primos... ${(p.progreso * 100).toInt()}%")
                     }
                     is PrimosUi.Listo -> {
                         Card(
