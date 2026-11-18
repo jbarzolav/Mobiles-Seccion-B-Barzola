@@ -1,22 +1,27 @@
 # CentroTareas
 
-Aplicación de laboratorio con Kotlin, Jetpack Compose y MVVM + Repository para estudiar tareas largas y corrutinas en Android.
+Aplicación Android desarrollada con Kotlin, Jetpack Compose y Material 3. Utiliza MVVM + Repository para ejecutar tareas largas sin bloquear la interfaz.
 
 ## Observación del Paso 1
 
-### Comportamiento esperado por el código
+La primera versión utilizaba `Thread.sleep(4000)` en el hilo principal. Durante esos cuatro segundos, la pantalla quedaba bloqueada y el contador **Tócame** no podía actualizarse visualmente.
 
-Al pulsar **Tarea larga (MAL)**, `Thread.sleep(4000)` bloquea el hilo principal durante unos cuatro segundos. Durante ese intervalo, el contador **Tócame** no se actualiza visualmente y la pantalla no responde con normalidad. Los eventos de entrada pueden procesarse después de que termine el bloqueo.
+El mensaje **Trabajando...** no llegaba a dibujarse porque el mismo hilo encargado de actualizar la pantalla estaba ocupado con la espera. Cuando terminaba el bloqueo, el mensaje cambiaba a **Terminó** y la interfaz volvía a responder.
 
-Aunque el ViewModel asigna **Trabajando...**, el hilo principal está ocupado y no puede dibujar ese cambio. Al terminar la espera, el mensaje cambia a **Terminó**, y la interfaz vuelve a poder actualizarse.
+Si la espera fuera de diez segundos, Android podría mostrar un aviso ANR (*Application Not Responding*, «La aplicación no responde»), según las condiciones y los tiempos de espera del sistema.
 
-Si el bloqueo durara diez segundos, Android podría mostrar un aviso ANR (Application Not Responding, «La aplicación no responde»), dependiendo del contexto y de los tiempos de espera del sistema.
+## Paso 2: tarea con corrutina
 
-### Verificación manual pendiente
+Se reemplazó `tareaLargaMala()` por `tareaLarga()`, utilizando `viewModelScope.launch` y `withContext(Dispatchers.Default)`. La espera de cuatro segundos se realiza con `delay(4000)`, sin bloquear el hilo principal.
 
-- [ ] Comprobar que Tócame aumenta el contador antes de iniciar la tarea.
-- [ ] Pulsar Tarea larga (MAL) e intentar tocar el contador durante la espera.
-- [ ] Confirmar que Trabajando... no llega a dibujarse y aparece Terminó al finalizar.
-- [ ] Registrar aquí el resultado observado y adjuntar una captura.
+Durante la tarea aparece **Trabajando...**, el contador **Tócame** sigue sumando y, al finalizar, se muestra **Terminó**. Se comprobó que la interfaz continúa respondiendo mientras se ejecuta la tarea.
 
-`Thread.sleep` se usa únicamente para esta demostración y debe eliminarse en el paso 2.
+Los registros con la etiqueta **HILO** permiten identificar el cambio de contexto:
+
+| Momento | Hilo |
+| --- | --- |
+| Antes de `withContext` | `main` |
+| Dentro de `withContext` | `DefaultDispatcher-worker-…` |
+| Después de `withContext` | `main` |
+
+`Thread.sleep` ya no forma parte del código de la aplicación.

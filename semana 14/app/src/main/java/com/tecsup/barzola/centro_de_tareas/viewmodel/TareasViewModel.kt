@@ -1,5 +1,11 @@
 package com.tecsup.barzola.centro_de_tareas.viewmodel
 
+import android.util.Log
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import androidx.lifecycle.ViewModel
 import com.tecsup.barzola.centro_de_tareas.data.TareasRepository
 import com.tecsup.barzola.centro_de_tareas.model.CargaUi
@@ -13,13 +19,18 @@ class TareasViewModel(private val repo: TareasRepository) : ViewModel() {
     private val _mensaje = MutableStateFlow("Listo")
     val mensaje: StateFlow<String> = _mensaje.asStateFlow()
 
-    // Demostración temporal del bloqueo; se reemplaza en el paso 2.
-    fun tareaLargaMala() {
-        _mensaje.value = "Trabajando..."
-        Thread.sleep(4000)
-        _mensaje.value = "Terminó"
+    fun tareaLarga() {
+        viewModelScope.launch {
+            _mensaje.value = "Trabajando..."
+            Log.d("HILO", "Antes: ${Thread.currentThread().name}")
+            withContext(Dispatchers.Default) {
+                Log.d("HILO", "Dentro: ${Thread.currentThread().name}")
+                delay(4000)
+            }
+            Log.d("HILO", "Despues: ${Thread.currentThread().name}")
+            _mensaje.value = "Terminó"
+        }
     }
-    // TODO Paso 2: sustituirla por fun tareaLarga() con corrutina y logs HILO.
     // TODO Paso 3: progreso como StateFlow<Float> de solo lectura.
     // TODO Paso 4: trabajo (Job?), corriendo y fun cancelar().
 

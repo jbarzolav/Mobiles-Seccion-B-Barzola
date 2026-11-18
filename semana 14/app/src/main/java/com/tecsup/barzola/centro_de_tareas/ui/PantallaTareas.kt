@@ -50,9 +50,8 @@ fun PantallaTareas(vm: TareasViewModel, modifier: Modifier = Modifier) {
 
             TarjetaTarea("Tarea con progreso") {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // TODO Paso 2: cambiar a tareaLarga() y renombrar el botón.
-                    Button(onClick = { vm.tareaLargaMala() }) {
-                        Text("Tarea larga (MAL)")
+                    Button(onClick = { vm.tareaLarga() }) {
+                        Text("Tarea larga")
                     }
                     // TODO Paso 4: conectar cancelar() y habilitar mientras corre.
                     OutlinedButton(onClick = { /* TODO Paso 4 */ }, enabled = false) {
