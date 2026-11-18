@@ -3,11 +3,13 @@
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.tecsup.barzola_campusgps.data.LugaresRepository
+import com.tecsup.barzola_campusgps.data.PreferenciasRepository
 import com.tecsup.barzola_campusgps.data.UbicacionRepository
 
 class CampusViewModelFactory(
     private val ubicacionRepo: UbicacionRepository,
-    private val lugaresRepo: LugaresRepository
+    private val lugaresRepo: LugaresRepository,
+    private val preferenciasRepo: PreferenciasRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -15,7 +17,8 @@ class CampusViewModelFactory(
             @Suppress("UNCHECKED_CAST")
             return MapaViewModel(
                 ubicacionRepo = ubicacionRepo,
-                lugaresRepo = lugaresRepo
+                lugaresRepo = lugaresRepo,
+                preferenciasRepo = preferenciasRepo
             ) as T
         }
 

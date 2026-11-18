@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tecsup.barzola_campusgps.data.LugaresRepositoryLocal
+import com.tecsup.barzola_campusgps.data.PreferenciasRepository
 import com.tecsup.barzola_campusgps.data.UbicacionRepositoryGoogle
 import com.tecsup.barzola_campusgps.ui.PantallaMapa
 import com.tecsup.barzola_campusgps.ui.theme.Barzola_campusgpsTheme
@@ -19,7 +20,8 @@ class MainActivity : ComponentActivity() {
 
         val factory = CampusViewModelFactory(
             ubicacionRepo = UbicacionRepositoryGoogle(applicationContext),
-            lugaresRepo = LugaresRepositoryLocal()
+            lugaresRepo = LugaresRepositoryLocal(),
+            preferenciasRepo = PreferenciasRepository(applicationContext)
         )
 
         setContent {

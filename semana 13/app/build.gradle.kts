@@ -67,6 +67,9 @@ dependencies {
     // Google Maps para Jetpack Compose
     implementation("com.google.maps.android:maps-compose:8.4.0")
 
+    // Jetpack DataStore Preferences
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

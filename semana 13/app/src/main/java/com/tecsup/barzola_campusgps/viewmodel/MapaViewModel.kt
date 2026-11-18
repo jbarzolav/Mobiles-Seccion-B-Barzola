@@ -3,6 +3,7 @@
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tecsup.barzola_campusgps.data.LugaresRepository
+import com.tecsup.barzola_campusgps.data.PreferenciasRepository
 import com.tecsup.barzola_campusgps.data.UbicacionRepository
 import com.tecsup.barzola_campusgps.model.Lugar
 import com.tecsup.barzola_campusgps.model.LugarConDistancia
@@ -14,13 +15,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class MapaViewModel(
     private val ubicacionRepo: UbicacionRepository,
-    private val lugaresRepo: LugaresRepository
+    private val lugaresRepo: LugaresRepository,
+    private val preferenciasRepo: PreferenciasRepository
 ) : ViewModel() {
 
     private val _estado =
@@ -34,13 +37,33 @@ class MapaViewModel(
         }
     )
 
-    val lugares: StateFlow<List<LugarConDistancia>> =
-        _lugares.asStateFlow()
+    private val _categoriaSeleccionada = MutableStateFlow<String?>(null)
+    val categoriaSeleccionada: StateFlow<String?> = _categoriaSeleccionada.asStateFlow()
+
+    fun filtrarPorCategoria(categoria: String?) {
+        _categoriaSeleccionada.value = if (categoria == "Todos") null else categoria
+    }
+
+    val lugares: StateFlow<List<LugarConDistancia>> = _lugares.combine(_categoriaSeleccionada) { lista, categoria ->
+        if (categoria == null) {
+            lista
+        } else {
+            lista.filter { it.lugar.categoria.equals(categoria, ignoreCase = true) }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _lugares.value)
 
     private val _seleccionado = MutableStateFlow<Int?>(null)
 
     val seleccionado: StateFlow<Int?> =
         _seleccionado.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            preferenciasRepo.ultimoLugarId.collect { id ->
+                _seleccionado.value = id
+            }
+        }
+    }
 
     val masCercano: StateFlow<Lugar?> = flow {
         lugares.collect { lista ->
@@ -90,11 +113,16 @@ class MapaViewModel(
 
     fun seleccionar(id: Int?) {
         _seleccionado.value = id
+        viewModelScope.launch {
+            if (id != null) {
+                preferenciasRepo.guardarUltimoLugar(id)
+            }
+        }
     }
 
     fun permisoDenegado() {
         _estado.value = UbicacionUi.Error(
-            mensaje = "Sin permiso de ubicación no puedo mostrar dónde estás",
+            "Sin permiso de ubicación no puedo mostrar dónde estás",
             tipo = TipoError.SIN_PERMISO
         )
     }
