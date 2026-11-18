@@ -1,16 +1,21 @@
 package com.tecsup.barzola_campusgps.ui
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberUpdatedMarkerState
+import com.tecsup.barzola_campusgps.R
 import com.tecsup.barzola_campusgps.model.LugarConDistancia
 import com.tecsup.barzola_campusgps.model.UbicacionUi
 
@@ -21,6 +26,17 @@ fun MapaUbicacion(
     seleccionado: Int?,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+    val esOscuro = isSystemInDarkTheme()
+
+    val mapProperties = if (esOscuro) {
+        MapProperties(
+            mapStyleOptions = MapStyleOptions.loadRawResourceStyle(context, R.raw.map_dark_style)
+        )
+    } else {
+        MapProperties()
+    }
+
     val camara = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
             LatLng(-12.0464, -77.0428),
@@ -55,7 +71,8 @@ fun MapaUbicacion(
 
     GoogleMap(
         modifier = modifier,
-        cameraPositionState = camara
+        cameraPositionState = camara,
+        properties = mapProperties
     ) {
         if (estado is UbicacionUi.Lista) {
             Marker(
