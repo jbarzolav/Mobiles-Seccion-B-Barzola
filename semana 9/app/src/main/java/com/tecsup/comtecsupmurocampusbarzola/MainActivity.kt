@@ -15,10 +15,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.tecsup.comtecsupmurocampusbarzola.data.PostRepositoryRemote
 import com.tecsup.comtecsupmurocampusbarzola.data.remote.RetrofitClient
+import com.tecsup.comtecsupmurocampusbarzola.ui.PantallaDetalle
 import com.tecsup.comtecsupmurocampusbarzola.ui.PantallaLista
 import com.tecsup.comtecsupmurocampusbarzola.ui.theme.ComtecsupmurocampusbarzolaTheme
 import com.tecsup.comtecsupmurocampusbarzola.viewmodel.PostsViewModel
@@ -43,6 +48,8 @@ class MainActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MuroCampusApp(viewModel: PostsViewModel) {
+    var idSeleccionado by remember { mutableStateOf<Int?>(null) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -55,7 +62,21 @@ fun MuroCampusApp(viewModel: PostsViewModel) {
         modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            PantallaLista(viewModel = viewModel)
+            val selectedId = idSeleccionado
+            if (selectedId == null) {
+                PantallaLista(
+                    viewModel = viewModel,
+                    onPostClick = { post ->
+                        idSeleccionado = post.id
+                    }
+                )
+            } else {
+                PantallaDetalle(
+                    postId = selectedId,
+                    viewModel = viewModel,
+                    onVolver = { idSeleccionado = null }
+                )
+            }
         }
     }
 }
