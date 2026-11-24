@@ -45,7 +45,7 @@ fun MuroCampusApp() {
         modifier = Modifier.fillMaxSize()
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
-            // Pantalla base vacía con barra MuroCampus
+            // Pantalla base vacía
         }
     }
 }
