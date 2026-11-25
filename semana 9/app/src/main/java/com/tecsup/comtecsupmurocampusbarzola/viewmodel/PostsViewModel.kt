@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tecsup.comtecsupmurocampusbarzola.data.PostRepository
 import com.tecsup.comtecsupmurocampusbarzola.model.Comentario
+import com.tecsup.comtecsupmurocampusbarzola.model.NuevoPost
 import com.tecsup.comtecsupmurocampusbarzola.model.Post
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -28,6 +29,9 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
     private val _usuarioFiltro = MutableStateFlow<Int?>(null)
     val usuarioFiltro: StateFlow<Int?> = _usuarioFiltro.asStateFlow()
 
+    private val _publicacion = MutableStateFlow<UiState<Post>?>(null)
+    val publicacion: StateFlow<UiState<Post>?> = _publicacion.asStateFlow()
+
     init {
         cargar()
     }
@@ -48,6 +52,25 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
                 .onFailure { error ->
                     _lista.value = UiState.Error(mensajeDe(error))
                 }
+        }
+    }
+
+    fun prepararPublicacion() {
+        if (_publicacion.value != UiState.Cargando) {
+            _publicacion.value = null
+        }
+    }
+
+    fun publicar(titulo: String, texto: String) {
+        if (titulo.isBlank() || texto.isBlank() || _publicacion.value == UiState.Cargando) return
+
+        _publicacion.value = UiState.Cargando
+        viewModelScope.launch {
+            val nuevo = NuevoPost(userId = 1, title = titulo, body = texto)
+            _publicacion.value = repo.crear(nuevo).fold(
+                onSuccess = { UiState.Exito(it) },
+                onFailure = { UiState.Error(mensajeDe(it)) }
+            )
         }
     }
 
