@@ -11,11 +11,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.tecsup.comtecsupavisoscampusbarzola.model.Aviso
+import com.tecsup.comtecsupavisoscampusbarzola.model.Origen
 import com.tecsup.comtecsupavisoscampusbarzola.R
 import com.tecsup.comtecsupavisoscampusbarzola.MainActivity
 
 object Notificador {
     const val CANAL = "avisos"
+    const val CANAL_URGENTES = "urgentes"
 
     fun crearCanal(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -24,8 +26,14 @@ object Notificador {
                 "Avisos",
                 NotificationManager.IMPORTANCE_DEFAULT
             )
+            val canalUrgente = NotificationChannel(
+                CANAL_URGENTES,
+                "Urgentes",
+                NotificationManager.IMPORTANCE_HIGH
+            )
             val gestor = context.getSystemService(NotificationManager::class.java)
             gestor.createNotificationChannel(canal)
+            gestor.createNotificationChannel(canalUrgente)
         }
     }
 
@@ -48,11 +56,22 @@ object Notificador {
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notificacion = NotificationCompat.Builder(context, CANAL)
+        val canal = if (aviso.origen == Origen.RECORDATORIO) {
+            CANAL_URGENTES
+        } else {
+            CANAL
+        }
+        val prioridad = if (aviso.origen == Origen.RECORDATORIO) {
+            NotificationCompat.PRIORITY_HIGH
+        } else {
+            NotificationCompat.PRIORITY_DEFAULT
+        }
+
+        val notificacion = NotificationCompat.Builder(context, canal)
             .setSmallIcon(R.drawable.ic_notificacion)
             .setContentTitle(aviso.titulo)
             .setContentText(aviso.texto)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(prioridad)
             .setContentIntent(pendiente)
             .setAutoCancel(true)
             .build()
