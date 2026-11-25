@@ -1,0 +1,184 @@
+package com.tecsup.comtecsupavisoscampusbarzola.ui
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.tecsup.comtecsupavisoscampusbarzola.model.PermisoUi
+import com.tecsup.comtecsupavisoscampusbarzola.viewmodel.AvisosViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PantallaAvisos(vm: AvisosViewModel) {
+    val permiso by vm.permiso.collectAsState()
+    val avisos by vm.avisos.collectAsState()
+    val mensaje by vm.mensaje.collectAsState()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("AvisosCampus") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Tarjeta 1: Permiso de notificaciones
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Permiso de notificaciones",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    val textoEstado = when (permiso) {
+                        PermisoUi.SinPedir -> "Estado: Sin pedir"
+                        PermisoUi.Concedido -> "Estado: Permitido"
+                        PermisoUi.Denegado -> "Estado: Denegado"
+                    }
+                    Text(text = textoEstado)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            // TODO Paso 2: lanzar permiso
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Permitir notificaciones")
+                    }
+                }
+            }
+
+            // Tarjeta 2: Avisos
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Avisos",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = {
+                            // TODO Paso 3: vm.avisarAhora()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Mostrar aviso")
+                    }
+                }
+            }
+
+            // Tarjeta 3: Recordatorio
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Recordatorio",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                // TODO Paso 5: vm.recordarEn(10)
+                            },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text("Recordar en 10 s")
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                // TODO Paso 5: vm.cancelarRecordatorio()
+                            }
+                        ) {
+                            Text("Cancelar")
+                        }
+                    }
+                }
+            }
+
+            // Tarjeta 4: Receptor de anuncios
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Receptor de anuncios",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Escuchar el modo avión")
+                        Switch(
+                            checked = false,
+                            onCheckedChange = {
+                                // TODO Paso 6: vm.cambiarEscucha(it)
+                            }
+                        )
+                    }
+                    Text(
+                        text = "Activa o desactiva el modo avión del celular",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            // Tarjeta 5: Historial
+            HistorialAvisos(avisos = avisos)
+        }
+    }
+}
