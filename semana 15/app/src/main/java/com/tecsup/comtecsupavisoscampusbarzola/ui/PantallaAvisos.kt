@@ -1,5 +1,9 @@
 package com.tecsup.comtecsupavisoscampusbarzola.ui
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -22,20 +26,35 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.tecsup.comtecsupavisoscampusbarzola.model.PermisoUi
+import com.tecsup.comtecsupavisoscampusbarzola.notificacion.Notificador
 import com.tecsup.comtecsupavisoscampusbarzola.viewmodel.AvisosViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaAvisos(vm: AvisosViewModel) {
+    val contexto = LocalContext.current
     val permiso by vm.permiso.collectAsState()
     val avisos by vm.avisos.collectAsState()
     val mensaje by vm.mensaje.collectAsState()
+    val lanzador = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { concedido ->
+        vm.permisoRespondido(concedido)
+    }
+
+    LaunchedEffect(Unit) {
+        if (Notificador.tienePermiso(contexto)) {
+            vm.permisoRespondido(true)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -77,7 +96,11 @@ fun PantallaAvisos(vm: AvisosViewModel) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = {
-                            // TODO Paso 2: lanzar permiso
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                lanzador.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            } else {
+                                vm.permisoRespondido(true)
+                            }
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
