@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -62,7 +63,8 @@ fun PantallaAvisos(vm: AvisosViewModel) {
             vm.permisoRespondido(true)
         }
         vm.eventos.collect { aviso ->
-            Notificador.mostrar(contexto, aviso)
+            val mostrado = Notificador.mostrar(contexto, aviso)
+            if (!mostrado) vm.noSePudoMostrar()
         }
     }
 
@@ -136,6 +138,32 @@ fun PantallaAvisos(vm: AvisosViewModel) {
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Permitir notificaciones")
+                    }
+                }
+            }
+
+            if (mensaje != null) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = mensaje.orEmpty(),
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = {
+                                val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                                    .putExtra(Settings.EXTRA_APP_PACKAGE, contexto.packageName)
+                                contexto.startActivity(intent)
+                            }
+                        ) {
+                            Text("Abrir ajustes")
+                        }
                     }
                 }
             }
