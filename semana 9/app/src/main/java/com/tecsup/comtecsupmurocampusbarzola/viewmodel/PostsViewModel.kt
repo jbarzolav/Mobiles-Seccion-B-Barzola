@@ -6,8 +6,10 @@ import com.tecsup.comtecsupmurocampusbarzola.data.PostRepository
 import com.tecsup.comtecsupmurocampusbarzola.model.Comentario
 import com.tecsup.comtecsupmurocampusbarzola.model.NuevoPost
 import com.tecsup.comtecsupmurocampusbarzola.model.Post
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,7 +23,20 @@ data class DetalleUi(
     val comentarios: List<Comentario>
 )
 
+private const val TAMANO_PAGINA = 20
+
+data class PaginacionUi(
+    val hayMas: Boolean = false,
+    val cargando: Boolean = false,
+    val error: String? = null
+)
+
 class PostsViewModel(private val repo: PostRepository) : ViewModel() {
+
+    private var solicitudLista: Job? = null
+    private var inicioSiguiente = 0
+    private val _paginacion = MutableStateFlow(PaginacionUi())
+    val paginacion = _paginacion.asStateFlow()
 
     private val _lista = MutableStateFlow<UiState<List<Post>>>(UiState.Cargando)
     private val _busqueda = MutableStateFlow("")
@@ -61,17 +76,40 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
     }
 
     fun filtrar(userId: Int?) {
+        solicitudLista?.cancel()
         _usuarioFiltro.value = userId
-        viewModelScope.launch {
-            _lista.value = UiState.Cargando
-            val result = if (userId == null) repo.listar() else repo.porUsuario(userId)
-            result
-                .onSuccess { posts ->
-                    _lista.value = UiState.Exito(posts.filterNot { it.id in idsEliminados })
+        _lista.value = UiState.Cargando
+        _paginacion.value = PaginacionUi()
+        inicioSiguiente = 0
+        solicitarPagina(inicio = 0, userId = userId)
+    }
+
+    fun cargarMas() {
+        val estado = _paginacion.value
+        if (!estado.hayMas || estado.cargando) return
+
+        _paginacion.value = estado.copy(cargando = true, error = null)
+        solicitarPagina(inicio = inicioSiguiente, userId = _usuarioFiltro.value)
+    }
+
+    private fun solicitarPagina(inicio: Int, userId: Int?) {
+        solicitudLista = viewModelScope.launch {
+            val resultado = repo.listar(inicio, TAMANO_PAGINA, userId)
+            ensureActive()
+            resultado.onSuccess { pagina ->
+                val previas = (_lista.value as? UiState.Exito)?.datos.orEmpty()
+                val nuevas = pagina.filterNot { it.id in idsEliminados }
+                inicioSiguiente = inicio + pagina.size
+                _lista.value = UiState.Exito((previas + nuevas).distinctBy { it.id })
+                _paginacion.value = PaginacionUi(hayMas = pagina.size == TAMANO_PAGINA)
+            }.onFailure { error ->
+                val mensaje = mensajeDe(error)
+                if (inicio == 0) {
+                    _lista.value = UiState.Error(mensaje)
+                } else {
+                    _paginacion.value = PaginacionUi(hayMas = true, error = mensaje)
                 }
-                .onFailure { error ->
-                    _lista.value = UiState.Error(mensajeDe(error))
-                }
+            }
         }
     }
 

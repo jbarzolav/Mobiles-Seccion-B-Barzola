@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -26,6 +25,7 @@ fun PantallaLista(
     val filtroActual by viewModel.usuarioFiltro.collectAsStateWithLifecycle()
 
     val busqueda by viewModel.busqueda.collectAsStateWithLifecycle()
+    val paginacion by viewModel.paginacion.collectAsStateWithLifecycle()
 
     Column(modifier = modifier.fillMaxSize()) {
         OutlinedTextField(
@@ -70,32 +70,46 @@ fun PantallaLista(
                 )
             }
             is UiState.Exito -> {
-                if (state.datos.isEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = if (busqueda.isBlank()) "Sin publicaciones" else "Sin coincidencias",
-                            style = MaterialTheme.typography.bodyLarge
+                LazyColumn(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    contentPadding = PaddingValues(bottom = 80.dp)
+                ) {
+                    if (state.datos.isEmpty()) {
+                        item {
+                            Text(
+                                text = if (busqueda.isBlank()) "Sin publicaciones" else "Sin coincidencias en lo cargado",
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                    }
+
+                    items(state.datos, key = { it.id }) { post ->
+                        TarjetaPost(
+                            userId = post.userId,
+                            title = post.title,
+                            body = post.body,
+                            onClick = { onPostClick(post) }
                         )
                     }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxSize(),
-                        contentPadding = PaddingValues(bottom = 8.dp)
-                    ) {
-                        items(state.datos, key = { it.id }) { post ->
-                            TarjetaPost(
-                                userId = post.userId,
-                                title = post.title,
-                                body = post.body,
-                                onClick = { onPostClick(post) }
-                            )
+
+                    if (paginacion.hayMas) {
+                        item {
+                            Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                                paginacion.error?.let { mensaje ->
+                                    Text(mensaje, color = MaterialTheme.colorScheme.error)
+                                }
+                                Button(
+                                    onClick = viewModel::cargarMas,
+                                    enabled = !paginacion.cargando
+                                ) {
+                                    Text(when {
+                                        paginacion.cargando -> "Cargando…"
+                                        paginacion.error != null -> "Reintentar"
+                                        else -> "Cargar más"
+                                    })
+                                }
+                            }
                         }
                     }
                 }
