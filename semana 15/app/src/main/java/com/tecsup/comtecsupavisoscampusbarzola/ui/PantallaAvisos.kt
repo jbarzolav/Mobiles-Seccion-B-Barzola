@@ -1,6 +1,8 @@
 package com.tecsup.comtecsupavisoscampusbarzola.ui
 
 import android.Manifest
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,8 +36,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.tecsup.comtecsupavisoscampusbarzola.model.PermisoUi
 import com.tecsup.comtecsupavisoscampusbarzola.notificacion.Notificador
+import com.tecsup.comtecsupavisoscampusbarzola.receiver.ModoAvionReceiver
 import com.tecsup.comtecsupavisoscampusbarzola.viewmodel.AvisosViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,6 +50,7 @@ fun PantallaAvisos(vm: AvisosViewModel) {
     val avisos by vm.avisos.collectAsState()
     val mensaje by vm.mensaje.collectAsState()
     val faltan by vm.faltan.collectAsState()
+    val escuchandoAvion by vm.escuchandoAvion.collectAsState()
     val lanzador = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { concedido ->
@@ -57,6 +63,27 @@ fun PantallaAvisos(vm: AvisosViewModel) {
         }
         vm.eventos.collect { aviso ->
             Notificador.mostrar(contexto, aviso)
+        }
+    }
+
+    DisposableEffect(escuchandoAvion) {
+        val receptor = if (escuchandoAvion) {
+            ModoAvionReceiver { activo -> vm.alCambiarModoAvion(activo) }
+        } else {
+            null
+        }
+
+        receptor?.let {
+            ContextCompat.registerReceiver(
+                contexto,
+                it,
+                IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED),
+                ContextCompat.RECEIVER_NOT_EXPORTED
+            )
+        }
+
+        onDispose {
+            receptor?.let(contexto::unregisterReceiver)
         }
     }
 
@@ -195,10 +222,8 @@ fun PantallaAvisos(vm: AvisosViewModel) {
                     ) {
                         Text("Escuchar el modo avión")
                         Switch(
-                            checked = false,
-                            onCheckedChange = {
-                                // TODO Paso 6: vm.cambiarEscucha(it)
-                            }
+                            checked = escuchandoAvion,
+                            onCheckedChange = vm::cambiarEscucha
                         )
                     }
                     Text(
