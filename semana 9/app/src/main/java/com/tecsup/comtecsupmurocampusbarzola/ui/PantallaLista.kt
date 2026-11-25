@@ -25,7 +25,16 @@ fun PantallaLista(
     val estado by viewModel.lista.collectAsStateWithLifecycle()
     val filtroActual by viewModel.usuarioFiltro.collectAsStateWithLifecycle()
 
+    val busqueda by viewModel.busqueda.collectAsStateWithLifecycle()
+
     Column(modifier = modifier.fillMaxSize()) {
+        OutlinedTextField(
+            value = busqueda,
+            onValueChange = viewModel::buscar,
+            label = { Text("Buscar por título") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+        )
         // Fila de chips desplazable para filtro por usuario
         LazyRow(
             modifier = Modifier
@@ -68,7 +77,10 @@ fun PantallaLista(
                             .fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = "Sin publicaciones", style = MaterialTheme.typography.bodyLarge)
+                        Text(
+                            text = if (busqueda.isBlank()) "Sin publicaciones" else "Sin coincidencias",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
                     }
                 } else {
                     LazyColumn(
