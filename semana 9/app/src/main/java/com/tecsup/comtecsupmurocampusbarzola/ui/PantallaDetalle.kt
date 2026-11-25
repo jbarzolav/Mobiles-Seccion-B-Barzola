@@ -8,6 +8,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -22,7 +25,32 @@ fun PantallaDetalle(
     onVolver: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    BackHandler { onVolver() }
+    val eliminacion by viewModel.eliminacion.collectAsStateWithLifecycle()
+    val eliminando = eliminacion == UiState.Cargando
+    var confirmar by rememberSaveable(postId) { mutableStateOf(false) }
+
+    BackHandler { if (!eliminando) onVolver() }
+
+    LaunchedEffect(eliminacion, postId) {
+        if ((eliminacion as? UiState.Exito)?.datos == postId) onVolver()
+    }
+
+    if (confirmar) {
+        AlertDialog(
+            onDismissRequest = { confirmar = false },
+            title = { Text("¿Eliminar publicación?") },
+            text = { Text("La publicación se ocultará de la lista durante esta sesión.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmar = false
+                    viewModel.eliminar(postId)
+                }) { Text("Eliminar") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmar = false }) { Text("Cancelar") }
+            }
+        )
+    }
 
     LaunchedEffect(postId) {
         viewModel.abrir(postId)
@@ -62,6 +90,14 @@ fun PantallaDetalle(
                         text = post.body,
                         style = MaterialTheme.typography.bodyLarge
                     )
+                    TextButton(onClick = { confirmar = true }, enabled = !eliminando) {
+                        Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    }
+                    when (val resultado = eliminacion) {
+                        UiState.Cargando -> LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                        is UiState.Error -> Text(resultado.mensaje, color = MaterialTheme.colorScheme.error)
+                        else -> Unit
+                    }
                     Spacer(modifier = Modifier.height(16.dp))
                     HorizontalDivider()
                     Spacer(modifier = Modifier.height(16.dp))

@@ -32,6 +32,10 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
     private val _publicacion = MutableStateFlow<UiState<Post>?>(null)
     val publicacion: StateFlow<UiState<Post>?> = _publicacion.asStateFlow()
 
+    private val idsEliminados = mutableSetOf<Int>()
+    private val _eliminacion = MutableStateFlow<UiState<Int>?>(null)
+    val eliminacion: StateFlow<UiState<Int>?> = _eliminacion.asStateFlow()
+
     init {
         cargar()
     }
@@ -47,7 +51,7 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
             val result = if (userId == null) repo.listar() else repo.porUsuario(userId)
             result
                 .onSuccess { posts ->
-                    _lista.value = UiState.Exito(posts)
+                    _lista.value = UiState.Exito(posts.filterNot { it.id in idsEliminados })
                 }
                 .onFailure { error ->
                     _lista.value = UiState.Error(mensajeDe(error))
@@ -74,7 +78,26 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
         }
     }
 
+    fun eliminar(id: Int) {
+        if (_eliminacion.value == UiState.Cargando || id in idsEliminados) return
+
+        _eliminacion.value = UiState.Cargando
+        viewModelScope.launch {
+            repo.eliminar(id)
+                .onSuccess {
+                    idsEliminados.add(id)
+                    val listaActual = _lista.value
+                    if (listaActual is UiState.Exito) {
+                        _lista.value = UiState.Exito(listaActual.datos.filterNot { it.id == id })
+                    }
+                    _eliminacion.value = UiState.Exito(id)
+                }
+                .onFailure { _eliminacion.value = UiState.Error(mensajeDe(it)) }
+        }
+    }
+
     fun abrir(id: Int) {
+        if (_eliminacion.value != UiState.Cargando) _eliminacion.value = null
         viewModelScope.launch {
             _detalle.value = UiState.Cargando
             coroutineScope {
