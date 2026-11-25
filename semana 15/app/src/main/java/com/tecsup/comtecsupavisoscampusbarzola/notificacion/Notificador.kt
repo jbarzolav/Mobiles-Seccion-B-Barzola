@@ -14,6 +14,7 @@ import com.tecsup.comtecsupavisoscampusbarzola.model.Aviso
 import com.tecsup.comtecsupavisoscampusbarzola.model.Origen
 import com.tecsup.comtecsupavisoscampusbarzola.R
 import com.tecsup.comtecsupavisoscampusbarzola.MainActivity
+import com.tecsup.comtecsupavisoscampusbarzola.receiver.PosponerReceiver
 
 object Notificador {
     const val CANAL = "avisos"
@@ -55,6 +56,18 @@ object Notificador {
             intent,
             PendingIntent.FLAG_IMMUTABLE
         )
+        val posponerIntent = Intent(context, PosponerReceiver::class.java).apply {
+            action = PosponerReceiver.ACTION_POSPONER
+            putExtra(PosponerReceiver.EXTRA_ID, aviso.id)
+            putExtra(PosponerReceiver.EXTRA_TITULO, aviso.titulo)
+            putExtra(PosponerReceiver.EXTRA_TEXTO, aviso.texto)
+        }
+        val posponerPendiente = PendingIntent.getBroadcast(
+            context,
+            aviso.id,
+            posponerIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
 
         val canal = if (aviso.origen == Origen.RECORDATORIO) {
             CANAL_URGENTES
@@ -74,6 +87,11 @@ object Notificador {
             .setStyle(NotificationCompat.BigTextStyle().bigText(aviso.texto))
             .setPriority(prioridad)
             .setContentIntent(pendiente)
+            .addAction(
+                R.drawable.ic_notificacion,
+                "Posponer 10 s",
+                posponerPendiente
+            )
             .setAutoCancel(true)
             .build()
 
