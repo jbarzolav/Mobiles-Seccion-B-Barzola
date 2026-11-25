@@ -1,9 +1,12 @@
 package com.tecsup.comtecsupavisoscampusbarzola.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.tecsup.comtecsupavisoscampusbarzola.data.AvisosRepository
 import com.tecsup.comtecsupavisoscampusbarzola.model.Aviso
+import com.tecsup.comtecsupavisoscampusbarzola.model.Origen
 import com.tecsup.comtecsupavisoscampusbarzola.model.PermisoUi
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -28,7 +31,16 @@ class AvisosViewModel(private val repo: AvisosRepository) : ViewModel() {
     fun permisoRespondido(concedido: Boolean) {
         _permiso.value = if (concedido) PermisoUi.Concedido else PermisoUi.Denegado
     }
-    // TODO Paso 3: fun avisarAhora()
+    fun avisarAhora() {
+        viewModelScope.launch {
+            val aviso = repo.registrar(
+                titulo = "Tarea lista",
+                texto = "Tu entrega fue registrada",
+                origen = Origen.BOTON
+            )
+            _eventos.emit(aviso)
+        }
+    }
     // TODO Paso 5: faltan, recordarEn(segundos) y cancelarRecordatorio()
     // TODO Paso 6: escuchandoAvion, cambiarEscucha(valor) y alCambiarModoAvion(activo)
     // TODO Paso 8: fun noSePudoMostrar()

@@ -54,6 +54,9 @@ fun PantallaAvisos(vm: AvisosViewModel) {
         if (Notificador.tienePermiso(contexto)) {
             vm.permisoRespondido(true)
         }
+        vm.eventos.collect { aviso ->
+            Notificador.mostrar(contexto, aviso)
+        }
     }
 
     Scaffold(
@@ -123,7 +126,7 @@ fun PantallaAvisos(vm: AvisosViewModel) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = {
-                            // TODO Paso 3: vm.avisarAhora()
+                            vm.avisarAhora()
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
